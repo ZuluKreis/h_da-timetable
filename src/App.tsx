@@ -15,11 +15,13 @@ const EVENT_TYPES = ['Vorlesung', 'Praktikum', 'Übung', 'Seminar', 'Tutorium'] 
 const WEEKS = ['A', 'B', 'Beide'] as const;
 const PRIORITIES = [1, 2, 3] as const;
 const WEEK_FILTERS = ['Alle', 'A', 'B'] as const;
+const PRIORITY_FILTERS = ['Alle', 'Nur P1'] as const;
 
 type EventType = (typeof EVENT_TYPES)[number];
 type Week = (typeof WEEKS)[number];
 type Priority = (typeof PRIORITIES)[number];
 type WeekFilter = (typeof WEEK_FILTERS)[number];
+type PriorityFilter = (typeof PRIORITY_FILTERS)[number];
 
 interface ScheduleEvent {
   id: string;
@@ -58,6 +60,7 @@ const EMPTY_FORM: EventFormData = {
 export default function App() {
   const [events, setEvents] = useState<ScheduleEvent[]>(DEFAULT_EVENTS);
   const [activeWeekFilter, setActiveWeekFilter] = useState<WeekFilter>('Alle');
+  const [activePriorityFilter, setActivePriorityFilter] = useState<PriorityFilter>('Alle');
   const [isLoading, setIsLoading] = useState(true);
   const [saveError, setSaveError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -204,6 +207,14 @@ export default function App() {
     return eventWeek === 'Beide' || eventWeek === activeWeekFilter;
   };
 
+  const matchesPriorityFilter = (priority: Priority) => {
+    if (activePriorityFilter === 'Alle') {
+      return true;
+    }
+
+    return priority === 1;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 font-sans text-gray-800 md:p-8">
       <div className="mx-auto max-w-7xl">
@@ -221,23 +232,45 @@ export default function App() {
           </div>
 
           <div className="space-y-3 rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm">
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Wochenansicht</p>
-              <div className="inline-flex rounded-lg bg-gray-100 p-1">
-                {WEEK_FILTERS.map((filter) => (
-                  <button
-                    key={filter}
-                    type="button"
-                    onClick={() => setActiveWeekFilter(filter)}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                      activeWeekFilter === filter
-                        ? 'bg-white text-indigo-700 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    {filter === 'Alle' ? 'Alle Wochen' : `Woche ${filter}`}
-                  </button>
-                ))}
+            <div className="flex flex-wrap gap-4">
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Wochenansicht</p>
+                <div className="inline-flex rounded-lg bg-gray-100 p-1">
+                  {WEEK_FILTERS.map((filter) => (
+                    <button
+                      key={filter}
+                      type="button"
+                      onClick={() => setActiveWeekFilter(filter)}
+                      className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                        activeWeekFilter === filter
+                          ? 'bg-white text-indigo-700 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      {filter === 'Alle' ? 'Alle Wochen' : `Woche ${filter}`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Prioritäten</p>
+                <div className="inline-flex rounded-lg bg-gray-100 p-1">
+                  {PRIORITY_FILTERS.map((filter) => (
+                    <button
+                      key={filter}
+                      type="button"
+                      onClick={() => setActivePriorityFilter(filter)}
+                      className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                        activePriorityFilter === filter
+                          ? 'bg-white text-indigo-700 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      {filter}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -284,7 +317,11 @@ export default function App() {
 
                 {DAYS.map((_, dayIndex) => {
                   const cellEvents = events.filter(
-                    (entry) => entry.day === dayIndex && entry.time === timeIndex && matchesWeekFilter(entry.week)
+                    (entry) =>
+                      entry.day === dayIndex &&
+                      entry.time === timeIndex &&
+                      matchesWeekFilter(entry.week) &&
+                      matchesPriorityFilter(entry.priority)
                   );
 
                   return (
