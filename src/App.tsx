@@ -1,44 +1,66 @@
-import React, { useEffect, useState } from 'react';
-import { Plus, X, Trash2, Calendar, MapPin, Tag } from 'lucide-react';
+import { FormEvent, MouseEvent, useEffect, useState } from 'react';
+import { Calendar, MapPin, Plus, Tag, Trash2, X } from 'lucide-react';
 
-const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
+const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'] as const;
 const TIMES = [
   '8:30 - 10:00',
   '10:15 - 11:45',
   '12:00 - 13:30',
   '14:15 - 15:45',
   '16:00 - 17:30',
-  '17:45 - 19:15'
-];
+  '17:45 - 19:15',
+] as const;
 
-const EVENT_TYPES = ['Vorlesung', 'Praktikum', 'Übung', 'Seminar', 'Tutorium'];
-const WEEKS = ['A', 'B', 'Beide'];
-const PRIORITIES = [1, 2, 3];
-const DEFAULT_EVENTS = [
+const EVENT_TYPES = ['Vorlesung', 'Praktikum', 'Übung', 'Seminar', 'Tutorium'] as const;
+const WEEKS = ['A', 'B', 'Beide'] as const;
+const PRIORITIES = [1, 2, 3] as const;
+
+type EventType = (typeof EVENT_TYPES)[number];
+type Week = (typeof WEEKS)[number];
+type Priority = (typeof PRIORITIES)[number];
+
+interface ScheduleEvent {
+  id: string;
+  title: string;
+  type: EventType;
+  day: number;
+  time: number;
+  week: Week;
+  priority: Priority;
+  room: string;
+}
+
+type EventFormData = Omit<ScheduleEvent, 'id'>;
+
+interface EventsResponse {
+  events: ScheduleEvent[];
+}
+
+const DEFAULT_EVENTS: ScheduleEvent[] = [
   { id: '1', title: 'Informatik I', type: 'Vorlesung', day: 0, time: 0, week: 'Beide', priority: 1, room: 'HS 1' },
   { id: '2', title: 'Physik Praktikum', type: 'Praktikum', day: 1, time: 2, week: 'A', priority: 1, room: 'Labor 4' },
   { id: '3', title: 'Physik Praktikum', type: 'Praktikum', day: 1, time: 2, week: 'B', priority: 2, room: 'Labor 4' },
   { id: '4', title: 'Mathe Übung', type: 'Übung', day: 3, time: 3, week: 'B', priority: 3, room: 'Raum 102' },
 ];
 
+const EMPTY_FORM: EventFormData = {
+  title: '',
+  type: 'Vorlesung',
+  day: 0,
+  time: 0,
+  week: 'Beide',
+  priority: 1,
+  room: '',
+};
+
 export default function App() {
-  const [events, setEvents] = useState(DEFAULT_EVENTS);
+  const [events, setEvents] = useState<ScheduleEvent[]>(DEFAULT_EVENTS);
   const [isLoading, setIsLoading] = useState(true);
   const [saveError, setSaveError] = useState('');
-
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState(null);
-  const [itemToDelete, setItemToDelete] = useState(null);
-
-  const [formData, setFormData] = useState({
-    title: '',
-    type: 'Vorlesung',
-    day: 0,
-    time: 0,
-    week: 'Beide',
-    priority: 1,
-    room: ''
-  });
+  const [editingEvent, setEditingEvent] = useState<string | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [formData, setFormData] = useState<EventFormData>(EMPTY_FORM);
 
   useEffect(() => {
     let ignore = false;
@@ -51,7 +73,7 @@ export default function App() {
           throw new Error('load failed');
         }
 
-        const data = await response.json();
+        const data: EventsResponse = await response.json();
 
         if (!ignore && Array.isArray(data.events)) {
           setEvents(data.events);
@@ -68,14 +90,14 @@ export default function App() {
       }
     }
 
-    loadEvents();
+    void loadEvents();
 
     return () => {
       ignore = true;
     };
   }, []);
 
-  const persistEvents = async (nextEvents) => {
+  const persistEvents = async (nextEvents: ScheduleEvent[]) => {
     const response = await fetch('/api/events', {
       method: 'PUT',
       headers: {
@@ -91,22 +113,21 @@ export default function App() {
     setSaveError('');
   };
 
-  const openModal = (day = 0, time = 0, event = null) => {
+  const openModal = (day = 0, time = 0, event: ScheduleEvent | null = null) => {
     if (event) {
-      setFormData(event);
+      const { id, ...nextFormData } = event;
+      void id;
+      setFormData(nextFormData);
       setEditingEvent(event.id);
     } else {
       setFormData({
-        title: '',
-        type: 'Vorlesung',
+        ...EMPTY_FORM,
         day,
         time,
-        week: 'Beide',
-        priority: 1,
-        room: ''
       });
       setEditingEvent(null);
     }
+
     setIsModalOpen(true);
   };
 
@@ -115,37 +136,42 @@ export default function App() {
     setEditingEvent(null);
   };
 
-  const handleSave = (e) => {
-    e.preventDefault();
+  const handleSave = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
     const nextEvents = editingEvent
-      ? events.map((ev) => (ev.id === editingEvent ? { ...formData, id: editingEvent } : ev))
+      ? events.map((entry) => (entry.id === editingEvent ? { ...formData, id: editingEvent } : entry))
       : [...events, { ...formData, id: Date.now().toString() }];
 
     setEvents(nextEvents);
     closeModal();
 
-    persistEvents(nextEvents).catch(() => {
+    void persistEvents(nextEvents).catch(() => {
       setSaveError('Speichern in data/events.json ist fehlgeschlagen.');
     });
   };
 
-  const requestDelete = (id, e) => {
-    e.stopPropagation();
+  const requestDelete = (id: string, event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     setItemToDelete(id);
   };
 
   const confirmDelete = () => {
-    const nextEvents = events.filter((ev) => ev.id !== itemToDelete);
+    if (!itemToDelete) {
+      return;
+    }
+
+    const nextEvents = events.filter((entry) => entry.id !== itemToDelete);
 
     setEvents(nextEvents);
     setItemToDelete(null);
 
-    persistEvents(nextEvents).catch(() => {
+    void persistEvents(nextEvents).catch(() => {
       setSaveError('Speichern in data/events.json ist fehlgeschlagen.');
     });
   };
 
-  const getWeekColors = (week) => {
+  const getWeekColors = (week: Week) => {
     switch (week) {
       case 'A':
         return 'bg-sky-100 border-sky-400 text-sky-900';
@@ -153,21 +179,17 @@ export default function App() {
         return 'bg-emerald-100 border-emerald-400 text-emerald-900';
       case 'Beide':
         return 'bg-purple-100 border-purple-400 text-purple-900';
-      default:
-        return 'bg-gray-100 border-gray-400 text-gray-900';
     }
   };
 
-  const getPrioColors = (prio) => {
-    switch (parseInt(prio, 10)) {
+  const getPrioColors = (priority: Priority) => {
+    switch (priority) {
       case 1:
         return 'bg-red-500 text-white';
       case 2:
         return 'bg-orange-500 text-white';
       case 3:
         return 'bg-yellow-500 text-white';
-      default:
-        return 'bg-gray-500 text-white';
     }
   };
 
@@ -222,13 +244,13 @@ export default function App() {
             </div>
 
             {TIMES.map((timeLabel, timeIndex) => (
-              <div key={timeIndex} className="grid grid-cols-[100px_repeat(5,minmax(0,1fr))] border-b border-gray-100 last:border-0">
+              <div key={timeLabel} className="grid grid-cols-[100px_repeat(5,minmax(0,1fr))] border-b border-gray-100 last:border-0">
                 <div className="min-w-0 bg-gray-50/50 p-3 text-center text-sm font-medium text-gray-500">
                   <div className="flex h-full items-center justify-center">{timeLabel}</div>
                 </div>
 
                 {DAYS.map((_, dayIndex) => {
-                  const cellEvents = events.filter((event) => event.day === dayIndex && event.time === timeIndex);
+                  const cellEvents = events.filter((entry) => entry.day === dayIndex && entry.time === timeIndex);
 
                   return (
                     <div
@@ -241,36 +263,36 @@ export default function App() {
                       </div>
 
                       <div className="relative z-20 flex h-full flex-1 flex-row gap-1.5">
-                        {cellEvents.map((event) => (
+                        {cellEvents.map((entry) => (
                           <div
-                            key={event.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openModal(dayIndex, timeIndex, event);
+                            key={entry.id}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openModal(dayIndex, timeIndex, entry);
                             }}
-                            className={`group/event relative flex min-w-0 flex-1 flex-col rounded-md border-l-4 p-2 text-sm shadow-sm transition-shadow hover:shadow-md ${getWeekColors(event.week)}`}
+                            className={`group/event relative flex min-w-0 flex-1 flex-col rounded-md border-l-4 p-2 text-sm shadow-sm transition-shadow hover:shadow-md ${getWeekColors(entry.week)}`}
                           >
                             <div className="mb-1 flex items-start justify-between">
-                              <span className="truncate pr-6 font-bold leading-tight">{event.title}</span>
-                              <span className={`absolute right-2 top-2 rounded px-1.5 py-0.5 text-[10px] font-bold shadow-sm ${getPrioColors(event.priority)}`}>
-                                P{event.priority}
+                              <span className="truncate pr-6 font-bold leading-tight">{entry.title}</span>
+                              <span className={`absolute right-2 top-2 rounded px-1.5 py-0.5 text-[10px] font-bold shadow-sm ${getPrioColors(entry.priority)}`}>
+                                P{entry.priority}
                               </span>
                             </div>
 
                             <div className="mt-1 flex flex-1 flex-col gap-0.5 text-xs opacity-90">
-                              <span className="font-medium">{event.type}</span>
-                              {event.room && (
+                              <span className="font-medium">{entry.type}</span>
+                              {entry.room && (
                                 <span className="flex items-center gap-1 truncate">
-                                  <MapPin className="h-3 w-3 flex-shrink-0" /> <span className="truncate">{event.room}</span>
+                                  <MapPin className="h-3 w-3 flex-shrink-0" /> <span className="truncate">{entry.room}</span>
                                 </span>
                               )}
                               <span className="mt-0.5 flex items-center gap-1 truncate font-medium">
-                                <Tag className="h-3 w-3 flex-shrink-0" /> <span className="truncate">Woche: {event.week}</span>
+                                <Tag className="h-3 w-3 flex-shrink-0" /> <span className="truncate">Woche: {entry.week}</span>
                               </span>
                             </div>
 
                             <button
-                              onClick={(e) => requestDelete(event.id, e)}
+                              onClick={(event) => requestDelete(entry.id, event)}
                               className="absolute bottom-2 right-2 rounded-md bg-white/80 p-1.5 text-red-600 opacity-0 transition-opacity hover:bg-red-100 group-hover/event:opacity-100"
                               title="Löschen"
                               type="button"
@@ -308,7 +330,7 @@ export default function App() {
                   autoFocus
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(event) => setFormData({ ...formData, title: event.target.value })}
                   placeholder="z.B. Hohere Mathematik"
                 />
               </div>
@@ -319,7 +341,7 @@ export default function App() {
                   <select
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    onChange={(event) => setFormData({ ...formData, type: event.target.value as EventType })}
                   >
                     {EVENT_TYPES.map((type) => (
                       <option key={type} value={type}>
@@ -334,7 +356,7 @@ export default function App() {
                     type="text"
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
                     value={formData.room}
-                    onChange={(e) => setFormData({ ...formData, room: e.target.value })}
+                    onChange={(event) => setFormData({ ...formData, room: event.target.value })}
                     placeholder="z.B. Audimax"
                   />
                 </div>
@@ -346,10 +368,10 @@ export default function App() {
                   <select
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
                     value={formData.day}
-                    onChange={(e) => setFormData({ ...formData, day: parseInt(e.target.value, 10) })}
+                    onChange={(event) => setFormData({ ...formData, day: Number.parseInt(event.target.value, 10) })}
                   >
-                    {DAYS.map((day, idx) => (
-                      <option key={day} value={idx}>
+                    {DAYS.map((day, index) => (
+                      <option key={day} value={index}>
                         {day}
                       </option>
                     ))}
@@ -360,10 +382,10 @@ export default function App() {
                   <select
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
                     value={formData.time}
-                    onChange={(e) => setFormData({ ...formData, time: parseInt(e.target.value, 10) })}
+                    onChange={(event) => setFormData({ ...formData, time: Number.parseInt(event.target.value, 10) })}
                   >
-                    {TIMES.map((time, idx) => (
-                      <option key={time} value={idx}>
+                    {TIMES.map((time, index) => (
+                      <option key={time} value={index}>
                         {time}
                       </option>
                     ))}
@@ -382,7 +404,7 @@ export default function App() {
                           name="week"
                           value={week}
                           checked={formData.week === week}
-                          onChange={(e) => setFormData({ ...formData, week: e.target.value })}
+                          onChange={(event) => setFormData({ ...formData, week: event.target.value as Week })}
                           className="text-indigo-600 focus:ring-indigo-500"
                         />
                         <span className="text-sm">{week === 'Beide' ? 'Jede Woche' : `Woche ${week}`}</span>
@@ -401,7 +423,7 @@ export default function App() {
                           name="priority"
                           value={priority}
                           checked={formData.priority === priority}
-                          onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value, 10) })}
+                          onChange={(event) => setFormData({ ...formData, priority: Number.parseInt(event.target.value, 10) as Priority })}
                           className="text-indigo-600 focus:ring-indigo-500"
                         />
                         <span className="flex items-center gap-2 text-sm">

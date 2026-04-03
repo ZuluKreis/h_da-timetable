@@ -15,6 +15,7 @@ The frontend is built with React and Vite. A small Bun API stores timetable chan
 ## Tech Stack
 
 - React
+- TypeScript
 - Vite
 - Bun
 - Tailwind CSS
@@ -111,14 +112,16 @@ This means:
 
 To initialize a fresh local setup, copy `data/example_events.json` to `data/events.json`.
 
+If `data/events.json` is missing, the Bun API now returns an error instead of silently recreating the file.
+
 ## Project Structure
 
 ```text
 .
 |- data/events.json
 |- data/example_events.json
-|- server.js
-|- src/App.jsx
-|- src/main.jsx
-|- vite.config.js
+|- server.ts
+|- src/App.tsx
+|- src/main.tsx
+|- vite.config.ts
 ```
