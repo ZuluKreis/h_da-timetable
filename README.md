@@ -117,11 +117,15 @@ If `data/events.json` is missing, the Bun API now returns an error instead of si
 ## Project Structure
 
 ```text
-.
-|- data/events.json
-|- data/example_events.json
-|- server.ts
-|- src/App.tsx
-|- src/main.tsx
-|- vite.config.ts
+├── data
+│   ├── events.json
+│   └── example_events.json
+├── server.ts
+├── src
+│   ├── App.tsx
+│   ├── index.css
+│   ├── main.tsx
+│   └── vite-env.d.ts
+├── tsconfig.json
+└── vite.config.ts
 ```
