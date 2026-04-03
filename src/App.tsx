@@ -14,10 +14,12 @@ const TIMES = [
 const EVENT_TYPES = ['Vorlesung', 'Praktikum', 'Übung', 'Seminar', 'Tutorium'] as const;
 const WEEKS = ['A', 'B', 'Beide'] as const;
 const PRIORITIES = [1, 2, 3] as const;
+const WEEK_FILTERS = ['Alle', 'A', 'B'] as const;
 
 type EventType = (typeof EVENT_TYPES)[number];
 type Week = (typeof WEEKS)[number];
 type Priority = (typeof PRIORITIES)[number];
+type WeekFilter = (typeof WEEK_FILTERS)[number];
 
 interface ScheduleEvent {
   id: string;
@@ -55,6 +57,7 @@ const EMPTY_FORM: EventFormData = {
 
 export default function App() {
   const [events, setEvents] = useState<ScheduleEvent[]>(DEFAULT_EVENTS);
+  const [activeWeekFilter, setActiveWeekFilter] = useState<WeekFilter>('Alle');
   const [isLoading, setIsLoading] = useState(true);
   const [saveError, setSaveError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -193,6 +196,14 @@ export default function App() {
     }
   };
 
+  const matchesWeekFilter = (eventWeek: Week) => {
+    if (activeWeekFilter === 'Alle') {
+      return true;
+    }
+
+    return eventWeek === 'Beide' || eventWeek === activeWeekFilter;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 font-sans text-gray-800 md:p-8">
       <div className="mx-auto max-w-7xl">
@@ -209,25 +220,47 @@ export default function App() {
             {saveError && <p className="mt-2 text-sm text-red-600">{saveError}</p>}
           </div>
 
-          <div className="flex flex-wrap gap-4 rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-sky-400"></span> Woche A
+          <div className="space-y-3 rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm">
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Wochenansicht</p>
+              <div className="inline-flex rounded-lg bg-gray-100 p-1">
+                {WEEK_FILTERS.map((filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    onClick={() => setActiveWeekFilter(filter)}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      activeWeekFilter === filter
+                        ? 'bg-white text-indigo-700 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    {filter === 'Alle' ? 'Alle Wochen' : `Woche ${filter}`}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-emerald-400"></span> Woche B
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-purple-400"></span> Beide Wochen
-            </div>
-            <div className="hidden h-4 w-px bg-gray-300 md:block"></div>
-            <div className="flex items-center gap-2">
-              <span className="rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">P1</span> Prio 1
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="rounded bg-orange-500 px-1.5 py-0.5 text-[10px] font-bold text-white">P2</span> Prio 2
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="rounded bg-yellow-500 px-1.5 py-0.5 text-[10px] font-bold text-white">P3</span> Prio 3
+
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-sky-400"></span> Woche A
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-emerald-400"></span> Woche B
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-purple-400"></span> Beide Wochen
+              </div>
+              <div className="hidden h-4 w-px bg-gray-300 md:block"></div>
+              <div className="flex items-center gap-2">
+                <span className="rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">P1</span> Prio 1
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="rounded bg-orange-500 px-1.5 py-0.5 text-[10px] font-bold text-white">P2</span> Prio 2
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="rounded bg-yellow-500 px-1.5 py-0.5 text-[10px] font-bold text-white">P3</span> Prio 3
+              </div>
             </div>
           </div>
         </div>
@@ -250,7 +283,9 @@ export default function App() {
                 </div>
 
                 {DAYS.map((_, dayIndex) => {
-                  const cellEvents = events.filter((entry) => entry.day === dayIndex && entry.time === timeIndex);
+                  const cellEvents = events.filter(
+                    (entry) => entry.day === dayIndex && entry.time === timeIndex && matchesWeekFilter(entry.week)
+                  );
 
                   return (
                     <div
