@@ -57,35 +57,35 @@ This starts:
 
 ## Scripts
 
-```bash
-bun run dev
-```
-
 Run the frontend and API together.
 
 ```bash
-bun run dev:web
+bun run dev
 ```
 
 Run only the Vite frontend.
 
 ```bash
-bun run dev:api
+bun run dev:web
 ```
 
 Run only the Bun API.
 
 ```bash
-bun run build
+bun run dev:api
 ```
 
 Create a production build.
 
 ```bash
-bun run preview
+bun run build
 ```
 
 Preview the production build locally.
+
+```bash
+bun run preview
+```
 
 ## Data Storage
 
