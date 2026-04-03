@@ -20,7 +20,7 @@ interface ScheduleEvent {
   time: number;
   week: Week;
   priority: Priority;
-  room: string;
+  prof: string;
 }
 
 interface EventsPayload {
@@ -47,7 +47,7 @@ function isScheduleEvent(value: unknown): value is ScheduleEvent {
     WEEKS.includes(candidate.week as Week) &&
     typeof candidate.priority === 'number' &&
     PRIORITIES.includes(candidate.priority as Priority) &&
-    typeof candidate.room === 'string'
+    typeof candidate.prof === 'string'
   );
 }
 

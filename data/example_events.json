@@ -8,7 +8,7 @@
       "time": 0,
       "week": "Beide",
       "priority": 1,
-      "room": "HS 1"
+      "prof": "Meyer"
     },
     {
       "id": "2",
@@ -18,7 +18,7 @@
       "time": 2,
       "week": "A",
       "priority": 1,
-      "room": "Labor 4"
+      "prof": "Hans"
     },
     {
       "id": "3",
@@ -28,7 +28,7 @@
       "time": 2,
       "week": "B",
       "priority": 2,
-      "room": "Labor 4"
+      "prof": "Hans"
     },
     {
       "id": "4",
@@ -38,7 +38,7 @@
       "time": 3,
       "week": "B",
       "priority": 3,
-      "room": "Raum 102"
+      "prof": "Müller"
     }
   ]
 }

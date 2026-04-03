@@ -1,5 +1,5 @@
 import { FormEvent, MouseEvent, useEffect, useState } from 'react';
-import { Calendar, MapPin, Plus, Tag, Trash2, X } from 'lucide-react';
+import { GraduationCap, Plus, Tag, Trash2, User, X } from 'lucide-react';
 
 const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'] as const;
 const TIMES = [
@@ -31,7 +31,7 @@ interface ScheduleEvent {
   time: number;
   week: Week;
   priority: Priority;
-  room: string;
+  prof: string;
 }
 
 type EventFormData = Omit<ScheduleEvent, 'id'>;
@@ -41,10 +41,10 @@ interface EventsResponse {
 }
 
 const DEFAULT_EVENTS: ScheduleEvent[] = [
-  { id: '1', title: 'Informatik I', type: 'Vorlesung', day: 0, time: 0, week: 'Beide', priority: 1, room: 'HS 1' },
-  { id: '2', title: 'Physik Praktikum', type: 'Praktikum', day: 1, time: 2, week: 'A', priority: 1, room: 'Labor 4' },
-  { id: '3', title: 'Physik Praktikum', type: 'Praktikum', day: 1, time: 2, week: 'B', priority: 2, room: 'Labor 4' },
-  { id: '4', title: 'Mathe Übung', type: 'Übung', day: 3, time: 3, week: 'B', priority: 3, room: 'Raum 102' },
+  { id: '1', title: 'Informatik I', type: 'Vorlesung', day: 0, time: 0, week: 'Beide', priority: 1, prof: 'HS 1' },
+  { id: '2', title: 'Physik Praktikum', type: 'Praktikum', day: 1, time: 2, week: 'A', priority: 1, prof: 'Labor 4' },
+  { id: '3', title: 'Physik Praktikum', type: 'Praktikum', day: 1, time: 2, week: 'B', priority: 2, prof: 'Labor 4' },
+  { id: '4', title: 'Mathe Übung', type: 'Übung', day: 3, time: 3, week: 'B', priority: 3, prof: 'Raum 102' },
 ];
 
 const EMPTY_FORM: EventFormData = {
@@ -54,7 +54,7 @@ const EMPTY_FORM: EventFormData = {
   time: 0,
   week: 'Beide',
   priority: 1,
-  room: '',
+  prof: '',
 };
 
 export default function App() {
@@ -225,7 +225,7 @@ export default function App() {
         <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h1 className="flex items-center gap-2 text-3xl font-bold text-gray-900">
-              <Calendar className="h-8 w-8 text-indigo-600" />
+              <GraduationCap className="h-8 w-8 text-indigo-600" />
               Uni Stundenplan
             </h1>
             <p className="mt-1 text-gray-500">Plane deine Vorlesungen und Praktika effizient.</p>
@@ -359,9 +359,9 @@ export default function App() {
 
                             <div className="mt-1 flex flex-1 flex-col gap-0.5 text-xs opacity-90">
                               <span className="font-medium">{entry.type}</span>
-                              {entry.room && (
+                              {entry.prof && (
                                 <span className="flex items-center gap-1 truncate">
-                                  <MapPin className="h-3 w-3 flex-shrink-0" /> <span className="truncate">{entry.room}</span>
+                                  <User className="h-3 w-3 flex-shrink-0" /> <span className="truncate">Prof: {entry.prof}</span>
                                 </span>
                               )}
                               <span className="mt-0.5 flex items-center gap-1 truncate font-medium">
@@ -429,13 +429,13 @@ export default function App() {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Raum (optional)</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Prof (optional)</label>
                   <input
                     type="text"
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={formData.room}
-                    onChange={(event) => setFormData({ ...formData, room: event.target.value })}
-                    placeholder="z.B. Audimax"
+                    value={formData.prof}
+                    onChange={(event) => setFormData({ ...formData, prof: event.target.value })}
+                    placeholder="z.B. Moore"
                   />
                 </div>
               </div>
