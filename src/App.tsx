@@ -15,7 +15,7 @@ const EVENT_TYPES = ['Vorlesung', 'Praktikum', 'Übung', 'Seminar', 'Tutorium'] 
 const WEEKS = ['A', 'B', 'Beide'] as const;
 const PRIORITIES = [1, 2, 3] as const;
 const WEEK_FILTERS = ['Alle', 'A', 'B'] as const;
-const PRIORITY_FILTERS = ['Alle', 'Nur P1'] as const;
+const PRIORITY_FILTERS = ['Alle', 'P1', 'P2', 'P3'] as const;
 
 type EventType = (typeof EVENT_TYPES)[number];
 type Week = (typeof WEEKS)[number];
@@ -207,12 +207,16 @@ export default function App() {
     return eventWeek === 'Beide' || eventWeek === activeWeekFilter;
   };
 
-  const matchesPriorityFilter = (priority: Priority) => {
+  const matchesPriorityFilter = (entry: ScheduleEvent) => {
+    if (entry.type === 'Vorlesung') {
+      return true;
+    }
+
     if (activePriorityFilter === 'Alle') {
       return true;
     }
 
-    return priority === 1;
+    return entry.priority === Number.parseInt(activePriorityFilter.slice(1), 10);
   };
 
   return (
@@ -321,7 +325,7 @@ export default function App() {
                       entry.day === dayIndex &&
                       entry.time === timeIndex &&
                       matchesWeekFilter(entry.week) &&
-                      matchesPriorityFilter(entry.priority)
+                        matchesPriorityFilter(entry)
                   );
 
                   return (
@@ -346,9 +350,11 @@ export default function App() {
                           >
                             <div className="mb-1 flex items-start justify-between">
                               <span className="truncate pr-6 font-bold leading-tight">{entry.title}</span>
-                              <span className={`absolute right-2 top-2 rounded px-1.5 py-0.5 text-[10px] font-bold shadow-sm ${getPrioColors(entry.priority)}`}>
-                                P{entry.priority}
-                              </span>
+                              {entry.type !== 'Vorlesung' && (
+                                <span className={`absolute right-2 top-2 rounded px-1.5 py-0.5 text-[10px] font-bold shadow-sm ${getPrioColors(entry.priority)}`}>
+                                  P{entry.priority}
+                                </span>
+                              )}
                             </div>
 
                             <div className="mt-1 flex flex-1 flex-col gap-0.5 text-xs opacity-90">
