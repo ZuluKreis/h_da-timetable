@@ -2,13 +2,14 @@
 
 A small timetable web app for managing lectures, labs, tutorials, and other university events.
 
-The frontend is built with React and Vite. A small Bun API stores timetable changes in a JSON file so entries persist across page reloads, app restarts, and browser changes on the same machine.
+The frontend is built with React and Vite. A small Bun API stores timetable changes in a local JSON file so entries persist across page reloads, app restarts, and browser changes on the same machine.
 
 ## Features
 
 - Add, edit, and delete timetable entries
 - Organize events by day, time, week rhythm, room, and priority
 - Persist timetable data in `data/events.json`
+- Keep sample data in `data/example_events.json`
 - Share the same saved timetable across browsers on the same computer
 
 ## Tech Stack
@@ -29,6 +30,12 @@ Install dependencies:
 
 ```bash
 bun install
+```
+
+Create a local runtime data file from the tracked example data:
+
+```bash
+cp data/example_events.json data/events.json
 ```
 
 Start the development environment:
@@ -82,10 +89,16 @@ Preview the production build locally.
 
 ## Data Storage
 
-Saved timetable data is written to:
+The app writes live timetable data to:
 
 ```text
 data/events.json
+```
+
+The repository also includes a tracked sample file:
+
+```text
+data/example_events.json
 ```
 
 This means:
@@ -93,14 +106,17 @@ This means:
 - Data survives browser refreshes and app restarts.
 - Clearing cookies or local storage does not remove saved entries.
 - Different browsers on the same machine use the same saved timetable.
+- `data/events.json` is local runtime data and should not be committed.
+- `data/example_events.json` is the checked-in example dataset for the repository.
 
-If `data/events.json` is removed, the app recreates it with the default sample entries.
+To initialize a fresh local setup, copy `data/example_events.json` to `data/events.json`.
 
 ## Project Structure
 
 ```text
 .
 |- data/events.json
+|- data/example_events.json
 |- server.js
 |- src/App.jsx
 |- src/main.jsx

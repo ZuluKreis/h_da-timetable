@@ -188,6 +188,7 @@ thumb
 sketch
 
 
-./data
+/data/*
+!/data/example_events.json
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,node,react

@@ -1,0 +1,44 @@
+{
+  "events": [
+    {
+      "id": "1",
+      "title": "Informatik I",
+      "type": "Vorlesung",
+      "day": 0,
+      "time": 0,
+      "week": "Beide",
+      "priority": 1,
+      "room": "HS 1"
+    },
+    {
+      "id": "2",
+      "title": "Physik Praktikum",
+      "type": "Praktikum",
+      "day": 1,
+      "time": 2,
+      "week": "A",
+      "priority": 1,
+      "room": "Labor 4"
+    },
+    {
+      "id": "3",
+      "title": "Physik Praktikum",
+      "type": "Praktikum",
+      "day": 1,
+      "time": 2,
+      "week": "B",
+      "priority": 2,
+      "room": "Labor 4"
+    },
+    {
+      "id": "4",
+      "title": "Mathe Übung",
+      "type": "Übung",
+      "day": 3,
+      "time": 3,
+      "week": "B",
+      "priority": 3,
+      "room": "Raum 102"
+    }
+  ]
+}
