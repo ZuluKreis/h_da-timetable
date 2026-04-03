@@ -147,7 +147,7 @@ export default function App() {
 
     const nextEvents = editingEvent
       ? events.map((entry) => (entry.id === editingEvent ? { ...formData, id: editingEvent } : entry))
-      : [...events, { ...formData, id: Date.now().toString() }];
+      : [...events, { ...formData, id: crypto.randomUUID() }];
 
     setEvents(nextEvents);
     closeModal();
