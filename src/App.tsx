@@ -144,6 +144,14 @@ export default function App() {
     setEditingEvent(null);
   };
 
+  const applyEvents = (nextEvents: ScheduleEvent[]) => {
+    setEvents(nextEvents);
+
+    void persistEvents(nextEvents).catch(() => {
+      setSaveError('Speichern in data/events.json ist fehlgeschlagen.');
+    });
+  };
+
   const handleSave = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -151,12 +159,8 @@ export default function App() {
       ? events.map((entry) => (entry.id === editingEvent ? { ...formData, id: editingEvent } : entry))
       : [...events, { ...formData, id: crypto.randomUUID() }];
 
-    setEvents(nextEvents);
     closeModal();
-
-    void persistEvents(nextEvents).catch(() => {
-      setSaveError('Speichern in data/events.json ist fehlgeschlagen.');
-    });
+    applyEvents(nextEvents);
   };
 
   const requestDelete = (id: string, event: MouseEvent<HTMLButtonElement>) => {
@@ -171,12 +175,8 @@ export default function App() {
 
     const nextEvents = events.filter((entry) => entry.id !== itemToDelete);
 
-    setEvents(nextEvents);
     setItemToDelete(null);
-
-    void persistEvents(nextEvents).catch(() => {
-      setSaveError('Speichern in data/events.json ist fehlgeschlagen.');
-    });
+    applyEvents(nextEvents);
   };
 
   const toggleAllocated = (id: string, clickEvent: MouseEvent<HTMLDivElement>) => {
@@ -186,11 +186,7 @@ export default function App() {
       entry.id === id ? { ...entry, allocated: !entry.allocated } : entry
     );
 
-    setEvents(nextEvents);
-
-    void persistEvents(nextEvents).catch(() => {
-      setSaveError('Speichern in data/events.json ist fehlgeschlagen.');
-    });
+    applyEvents(nextEvents);
   };
 
   const getWeekColors = (week: Week) => {
