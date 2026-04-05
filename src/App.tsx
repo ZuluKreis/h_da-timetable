@@ -1,5 +1,5 @@
 import { FormEvent, Fragment, MouseEvent, useEffect, useState } from 'react';
-import { GraduationCap, Plus, Tag, Trash2, User, X } from 'lucide-react';
+import { GraduationCap, Pencil, Plus, Tag, Trash2, User, X } from 'lucide-react';
 
 const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'] as const;
 const TIMES = [
@@ -32,6 +32,7 @@ interface ScheduleEvent {
   week: Week;
   priority: Priority;
   prof: string;
+  allocated?: boolean;
 }
 
 type EventFormData = Omit<ScheduleEvent, 'id'>;
@@ -61,6 +62,7 @@ export default function App() {
   const [events, setEvents] = useState<ScheduleEvent[]>(DEFAULT_EVENTS);
   const [activeWeekFilter, setActiveWeekFilter] = useState<WeekFilter>('Alle');
   const [activePriorityFilter, setActivePriorityFilter] = useState<PriorityFilter>('Alle');
+  const [allocatedMode, setAllocatedMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [saveError, setSaveError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -177,6 +179,20 @@ export default function App() {
     });
   };
 
+  const toggleAllocated = (id: string, clickEvent: MouseEvent<HTMLDivElement>) => {
+    clickEvent.stopPropagation();
+
+    const nextEvents = events.map((entry) =>
+      entry.id === id ? { ...entry, allocated: !entry.allocated } : entry
+    );
+
+    setEvents(nextEvents);
+
+    void persistEvents(nextEvents).catch(() => {
+      setSaveError('Speichern in data/events.json ist fehlgeschlagen.');
+    });
+  };
+
   const getWeekColors = (week: Week) => {
     switch (week) {
       case 'A':
@@ -217,6 +233,14 @@ export default function App() {
     }
 
     return entry.priority === Number.parseInt(activePriorityFilter.slice(1), 10);
+  };
+
+  const matchesAllocatedFilter = (entry: ScheduleEvent) => {
+    if (!allocatedMode) {
+      return true;
+    }
+
+    return entry.allocated === true;
   };
 
   return (
@@ -276,6 +300,34 @@ export default function App() {
                   ))}
                 </div>
               </div>
+
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Ansicht</p>
+                <div className="inline-flex rounded-lg bg-gray-100 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setAllocatedMode(false)}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      !allocatedMode
+                        ? 'bg-white text-indigo-700 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Alle
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllocatedMode(true)}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      allocatedMode
+                        ? 'bg-white text-indigo-700 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Zugeteilt
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-4">
@@ -297,6 +349,13 @@ export default function App() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="rounded bg-yellow-500 px-1.5 py-0.5 text-[10px] font-bold text-white">P3</span> Prio 3
+              </div>
+              <div className="hidden h-4 w-px bg-gray-300 md:block"></div>
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-6 rounded border-l-4 border-gray-400"></span> Zugeteilt
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-6 rounded border-l-4 border-dashed border-gray-400"></span> Nicht zugeteilt
               </div>
             </div>
           </div>
@@ -326,7 +385,8 @@ export default function App() {
                         entry.day === dayIndex &&
                         entry.time === timeIndex &&
                         matchesWeekFilter(entry.week) &&
-                        matchesPriorityFilter(entry)
+                        matchesPriorityFilter(entry) &&
+                        matchesAllocatedFilter(entry)
                     );
 
                     return (
@@ -343,11 +403,8 @@ export default function App() {
                           {cellEvents.map((entry) => (
                             <div
                               key={entry.id}
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                openModal(dayIndex, timeIndex, entry);
-                              }}
-                              className={`group/event relative flex min-w-0 flex-1 flex-col rounded-md border-l-4 p-2 text-sm shadow-sm transition-shadow hover:shadow-md ${getWeekColors(entry.week)}`}
+                              onClick={(event) => toggleAllocated(entry.id, event)}
+                              className={`group/event relative flex min-w-0 flex-1 flex-col rounded-md border-l-4 p-2 text-sm shadow-sm transition-shadow hover:shadow-md ${getWeekColors(entry.week)} ${entry.allocated ? '' : 'border-dashed'}`}
                             >
                               <div className="mb-1 flex items-start justify-between">
                                 <span className="truncate pr-6 font-bold leading-tight">{entry.title}</span>
@@ -369,6 +426,18 @@ export default function App() {
                                   <Tag className="h-3 w-3 flex-shrink-0" /> <span className="truncate">Woche: {entry.week}</span>
                                 </span>
                               </div>
+
+                              <button
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  openModal(dayIndex, timeIndex, entry);
+                                }}
+                                className="absolute bottom-2 right-8 rounded-md bg-white/80 p-1.5 text-indigo-600 opacity-0 transition-opacity hover:bg-indigo-100 group-hover/event:opacity-100"
+                                title="Bearbeiten"
+                                type="button"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
 
                               <button
                                 onClick={(event) => requestDelete(entry.id, event)}

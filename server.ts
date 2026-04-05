@@ -21,6 +21,7 @@ interface ScheduleEvent {
   week: Week;
   priority: Priority;
   prof: string;
+  allocated?: boolean;
 }
 
 interface EventsPayload {
@@ -47,7 +48,8 @@ function isScheduleEvent(value: unknown): value is ScheduleEvent {
     WEEKS.includes(candidate.week as Week) &&
     typeof candidate.priority === 'number' &&
     PRIORITIES.includes(candidate.priority as Priority) &&
-    typeof candidate.prof === 'string'
+    typeof candidate.prof === 'string' &&
+    (candidate.allocated === undefined || typeof candidate.allocated === 'boolean')
   );
 }
 
