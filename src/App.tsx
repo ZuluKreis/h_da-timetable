@@ -350,13 +350,6 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <span className="rounded bg-yellow-500 px-1.5 py-0.5 text-[10px] font-bold text-white">P3</span> Prio 3
               </div>
-              <div className="hidden h-4 w-px bg-gray-300 md:block"></div>
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-6 rounded border-l-4 border-gray-400"></span> Zugeteilt
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-6 rounded border-l-4 border-dashed border-gray-400"></span> Nicht zugeteilt
-              </div>
             </div>
           </div>
         </div>
