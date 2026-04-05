@@ -1,4 +1,4 @@
-# Stundenplan
+# h_da Stundenplan
 
 A small timetable web app for managing lectures, labs, tutorials, and other university events.
 
